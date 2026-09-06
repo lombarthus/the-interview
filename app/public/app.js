@@ -748,6 +748,7 @@ async function loadUpdate() {
     renderFlavors();
     await Promise.all([loadVoices(), loadArchive(), loadLlmStatus()]);
     loadUpdate();
+    try { const v = await api('api/version'); $('aboutVersion').textContent = v.version || ''; if (v.homepage && !/YOUR-GITHUB-USER/.test(v.homepage)) $('aboutLink').href = v.homepage; else $('aboutLink').classList.add('hidden'); } catch { /* egal */ }
     setInterval(async () => { try { state.engine = await api('api/engine/status'); updateEngineChip(); } catch { /* egal */ } }, 15000);
   } catch (e) { toast(`Start: ${e.message}`, 'err', 8000); }
   updateResearchBtn(); updateGenerateBtn();

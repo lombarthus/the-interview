@@ -130,7 +130,7 @@ async function waitJob(id, timeoutMs = 600000) {
     await new Promise((r) => setTimeout(r, 1500));
   }
 }
-async function words(name) { return getJson(`/voices/${encodeURIComponent(name)}/words`, 20000); }
+async function words(name) { return getJson(`/voices/${encodeURIComponent(name)}/words`, 300000); }   // erster Lauf lädt Whisper und hört die ganze Aufnahme ab
 async function recut(name, body) { return postJson(`/voices/${encodeURIComponent(name)}/recut`, body, 30000); }
 async function deleteVoice(name) {
   const r = await fetch(`${URL_BASE}/voices/${encodeURIComponent(name)}`, { method: 'DELETE', signal: AbortSignal.timeout(10000) });

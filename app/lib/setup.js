@@ -147,7 +147,8 @@ function torchInfo() {
   if (!py) return null;
   const r = tryRun(py, ['-c', 'import torch,json;print(json.dumps({"version":torch.__version__,"cuda":torch.cuda.is_available()}))'], 120000);
   if (!r.ok) return null;
-  try { return JSON.parse(r.out.trim().split('\n').pop()); } catch { return null; }
+  const line = r.out.split(/\r?\n/).map((l) => l.trim()).find((l) => l.startsWith('{'));   // stderr-Warnungen (numpy fehlt noch) ignorieren
+  try { return line ? JSON.parse(line) : null; } catch { return null; }
 }
 async function stepTorch(log, progress) {
   const profile = state.profile || 'cpu';
@@ -156,7 +157,7 @@ async function stepTorch(log, progress) {
   const index = profile === 'gpu' ? DL.torch.gpuIndex : DL.torch.cpuIndex;
   log(`Installiere torch/torchaudio (${profile === 'gpu' ? 'CUDA 12.8, ≈ 2,8 GB' : 'CPU, ≈ 250 MB'}) von ${index} …`);
   progress({ label: profile === 'gpu' ? 'torch (CUDA) wird geladen — das dauert einige Minuten' : 'torch (CPU) wird geladen' });
-  const r = await runLogged(paths.uvPath(), ['pip', 'install', '--python', paths.venvPython(), '--index-url', index, 'torch', 'torchaudio'], { env: uvEnv(), log });
+  const r = await runLogged(paths.uvPath(), ['pip', 'install', '--python', paths.venvPython(), '--index-url', index, '--extra-index-url', 'https://pypi.org/simple', 'torch', 'torchaudio', 'numpy'], { env: uvEnv(), log });
   if (r.code !== 0) throw new Error(`torch-Installation fehlgeschlagen (exit ${r.code})`);
   const info = torchInfo();
   if (!info) throw new Error('torch importiert nicht');
