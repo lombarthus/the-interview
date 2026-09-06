@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Leak-Check, Syntax, Smoke
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # ganze Historie für den Leak-Check
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Leak-Check (Arbeitsbaum + Historie)
+        run: node tools/leak-check.js --all --history
+
+      - name: Syntax Node
+        shell: bash
+        run: |
+          set -e
+          for f in $(git ls-files 'app/**/*.js' 'tools/*.js'); do node --check "$f"; done
+          echo "node --check: ok"
+
+      - name: Syntax Python
+        shell: bash
+        run: python -m py_compile engine/*.py tools/*.py
+
+      - name: Smoke-Tests (ohne Netz, ohne Modelle)
+        run: node tools/smoke.js
+
+  gitleaks:
+    name: gitleaks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

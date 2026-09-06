@@ -1,0 +1,3 @@
+-r requirements-base.txt
+# CPU-Profil: Pocket TTS (in base) und faster-whisper small (int8) für Klon-Schnitt und Aussprache-Riegel
+faster-whisper>=1.1

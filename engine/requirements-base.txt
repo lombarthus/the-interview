@@ -1,0 +1,10 @@
+# The Interview — Sprach-Engine, gemeinsame Pakete (torch kommt separat, siehe app/lib/setup.js)
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9
+soundfile>=0.12
+numpy>=1.26
+pillow>=10.0
+huggingface_hub>=0.23
+requests>=2.31
+pocket-tts>=2.1.0

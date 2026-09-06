@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Interview — Einrichtung</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🎙️</text></svg>">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">🎙️</span><div><div class="brand-name">The Interview</div><div class="brand-sub">Einrichtung — einmalig, alles landet nur in deinem Benutzerordner</div></div></div>
+    <nav class="tabs" id="wizTabs">
+      <button class="tab is-active" data-page="tech">1 Technik</button>
+      <button class="tab" data-page="show">2 Show &amp; Host</button>
+      <button class="tab" data-page="voice">3 Host-Stimme</button>
+      <button class="tab" data-page="ai">4 KI-Anbieter</button>
+      <button class="tab" data-page="done">5 Fertig</button>
+    </nav>
+    <div class="topbar-right"><a class="btn small ghost" href="/" id="skipLink" title="Nur möglich, wenn die Technik-Schritte fertig sind">Zur App</a></div>
+  </header>
+
+  <main class="wrap">
+    <section class="card" id="page-tech">
+      <h2>Technik installieren</h2>
+      <p class="muted small" id="techIntro">Sechs Schritte, jeder einzeln wiederholbar. Nichts davon verändert andere Programme: ffmpeg, Python, torch und die Modelle landen unter <code id="homePath">…</code>.</p>
+      <div class="row wrap-row" style="margin-bottom:12px">
+        <button class="btn primary big" id="runAllBtn">▶ Alles einrichten</button>
+        <label class="check"><input type="checkbox" id="forceCpu" /> <span>CPU-Pfad erzwingen (auch mit NVIDIA-Karte)</span></label>
+        <span class="muted small" id="profileInfo"></span>
+      </div>
+      <div class="setup-steps" id="steps"></div>
+      <pre class="setup-log" id="setupLog"></pre>
+      <div class="wizard-nav"><span></span><button class="btn" id="techNext" disabled>Weiter →</button></div>
+    </section>
+
+    <section class="card hidden" id="page-show">
+      <h2>Show &amp; Host</h2>
+      <div class="settings-grid">
+        <label class="block"><span>Name des Hosts (so stellt er sich im Skript vor)</span><input id="wHostName" type="text" maxlength="40" placeholder="z. B. Alex" /></label>
+        <label class="block"><span>Name der Show</span><input id="wShowName" type="text" maxlength="60" placeholder="The Interview" /></label>
+      </div>
+      <p class="muted small">Beides lässt sich später unter ⚙ ändern.</p>
+      <div class="wizard-nav"><button class="btn ghost" data-goto="tech">← Zurück</button><button class="btn primary" id="showNext">Speichern &amp; weiter →</button></div>
+    </section>
+
+    <section class="card hidden" id="page-voice">
+      <h2>Stimme des Hosts</h2>
+      <p class="muted small" id="voiceIntro">Der Host braucht eine Stimme. Am besten deine eigene: 15–30 Sekunden frei sprechen oder eine Aufnahme ablegen.</p>
+      <div class="row wrap-row clone-sources">
+        <div id="wDropzone" class="dropzone grow" tabindex="0">
+          <input id="wFileInput" type="file" accept="audio/*,video/*" hidden />
+          <span class="dz-icon">📂</span><p class="dz-headline" id="wDzHeadline">Aufnahme hier ablegen oder klicken</p><p class="muted small">MP3, WAV, M4A, Video … mindestens ~10 Sekunden Sprache</p>
+        </div>
+        <div class="mic-box"><span class="dz-icon">🎤</span><p class="dz-headline">Oder ins Mikrofon sprechen</p><div class="row"><button id="wMicBtn" class="btn">● Aufnahme starten</button><span id="wMicTime" class="muted small"></span></div><audio id="wMicPlayer" controls class="player hidden"></audio></div>
+      </div>
+      <div class="row wrap-row">
+        <label class="block grow"><span>Name der Stimme</span><input id="wCloneName" type="text" maxlength="40" placeholder="z. B. Alex" /></label>
+        <label class="block"><span>Sprache</span><select id="wCloneLang"><option value="auto">automatisch</option><option value="de">Deutsch</option><option value="en">Englisch</option></select></label>
+        <button id="wCloneBtn" class="btn primary" disabled>Stimme klonen</button>
+      </div>
+      <p id="wCloneStatus" class="muted small"></p>
+      <h3>Oder eine vorhandene Stimme wählen</h3>
+      <div class="row wrap-row"><select id="wVoiceSelect"></select><button class="btn" id="wPreviewBtn">▶ Probe</button><span class="muted small" id="wVoiceHint"></span></div>
+      <div class="wizard-nav"><button class="btn ghost" data-goto="show">← Zurück</button><button class="btn primary" id="voiceNext">Diese Stimme nehmen &amp; weiter →</button></div>
+    </section>
+
+    <section class="card hidden" id="page-ai">
+      <h2>KI-Anbieter</h2>
+      <p class="muted small">Mindestens einer. Keys werden verschlüsselt im Benutzerprofil abgelegt und nie angezeigt. „Auto“ nimmt später den ersten eingerichteten in dieser Reihenfolge.</p>
+      <div class="provider-cards" id="pcards"></div>
+      <div class="wizard-nav"><button class="btn ghost" data-goto="voice">← Zurück</button><button class="btn primary" id="aiNext">Weiter →</button></div>
+    </section>
+
+    <section class="card hidden" id="page-done">
+      <h2>Fertig</h2>
+      <div id="summary"></div>
+      <div class="wizard-nav"><button class="btn ghost" data-goto="ai">← Zurück</button><button class="btn primary big" id="finishBtn">Zur App</button></div>
+    </section>
+  </main>
+  <div id="toast" class="toast hidden"></div>
+  <script src="setup.js"></script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+name: Release (Setup.exe + Portable)
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build Windows installer
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Leak-Check vor dem Build
+        run: node tools/leak-check.js --all --history
+
+      - name: Version aus dem Tag
+        id: ver
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $v = if ($tag -match '^v(\d+\.\d+\.\d+)') { $Matches[1] } else { "0.0.0" }
+          echo "version=$v" >> $env:GITHUB_OUTPUT
+          $json = Get-Content app/version.json | ConvertFrom-Json
+          $json.version = $v
+          $json.repo = "${{ github.repository }}"
+          $json.homepage = "https://github.com/${{ github.repository }}"
+          $json | ConvertTo-Json | Set-Content app/version.json -Encoding utf8
+          (Get-Content installer/TheInterview.iss) -replace 'YOUR-GITHUB-USER/the-interview', "${{ github.repository }}" | Set-Content installer/TheInterview.iss -Encoding utf8
+
+      - name: Runtimes laden und Prüfsummen verifizieren (node, uv)
+        shell: pwsh
+        run: |
+          $dl = Get-Content app/lib/downloads.json | ConvertFrom-Json
+          New-Item -ItemType Directory -Force runtime, work | Out-Null
+          function Fetch($url, $out, $sha) {
+            Invoke-WebRequest -Uri $url -OutFile $out -UseBasicParsing
+            $h = (Get-FileHash $out -Algorithm SHA256).Hash.ToLower()
+            if ($h -ne $sha.ToLower()) { throw "SHA-256 mismatch for $url : $h" }
+            Write-Host "ok $out $h"
+          }
+          Fetch $dl.node.url work/node.zip $dl.node.sha256
+          Fetch $dl.uv.url work/uv.zip $dl.uv.sha256
+          Expand-Archive work/node.zip -DestinationPath work/node
+          $nodeDir = Get-ChildItem work/node | Select-Object -First 1
+          New-Item -ItemType Directory -Force runtime/node | Out-Null
+          Copy-Item "$($nodeDir.FullName)/node.exe" runtime/node/node.exe
+          Copy-Item "$($nodeDir.FullName)/LICENSE" runtime/node/LICENSE
+          Expand-Archive work/uv.zip -DestinationPath work/uv
+          Copy-Item (Get-ChildItem work/uv -Recurse -Filter uv.exe | Select-Object -First 1).FullName runtime/uv.exe
+          & runtime/node/node.exe --version
+          & runtime/uv.exe --version
+
+      - name: Inno Setup bauen
+        shell: pwsh
+        run: |
+          $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup --no-progress -y; }
+          & $iscc "/DAppVersion=${{ steps.ver.outputs.version }}" installer/TheInterview.iss
+          Get-ChildItem dist
+
+      - name: Portable ZIP
+        shell: pwsh
+        run: |
+          $v = "${{ steps.ver.outputs.version }}"
+          New-Item -ItemType Directory -Force work/portable/TheInterview | Out-Null
+          Copy-Item -Recurse app, engine, runtime work/portable/TheInterview/
+          Copy-Item TheInterview.cmd, LICENSE, THIRD_PARTY.md, README.md, README.de.md work/portable/TheInterview/
+          Compress-Archive -Path work/portable/TheInterview -DestinationPath "dist/TheInterview-portable-$v.zip"
+          Get-ChildItem dist | ForEach-Object { "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower())  $($_.Name)" } | Set-Content dist/SHA256SUMS.txt -Encoding ascii
+          Get-Content dist/SHA256SUMS.txt
+
+      - name: Release-Entwurf mit Artefakten
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          draft: true
+          files: |
+            dist/TheInterview-Setup-*.exe
+            dist/TheInterview-portable-*.zip
+            dist/SHA256SUMS.txt
+          body: |
+            **The Interview ${{ steps.ver.outputs.version }}** — Windows 10/11 (64-bit)
+
+            - `TheInterview-Setup-*.exe`: Installer (pro Benutzer, keine Adminrechte). Beim ersten Start richtet ein Assistent ffmpeg, Python, torch, die Sprach-Engine und die Modelle ein.
+            - `TheInterview-portable-*.zip`: gleicher Inhalt ohne Installer — entpacken, `TheInterview.cmd` starten.
+            - `SHA256SUMS.txt`: Prüfsummen.
+
+            Hinweis: Die EXE ist nicht signiert. Windows SmartScreen zeigt „Unbekannter Herausgeber“ — „Weitere Informationen → Trotzdem ausführen“. Prüfsumme vergleichen, dann ist alles gut.
+
+      - name: Artefakte (auch ohne Tag)
+        uses: actions/upload-artifact@v4
+        with:
+          name: TheInterview-${{ steps.ver.outputs.version }}
+          path: dist/*

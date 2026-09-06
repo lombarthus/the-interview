@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Interview</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🎙️</text></svg>">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">🎙️</span>
+      <div>
+        <div class="brand-name" id="brandName">The Interview</div>
+        <div class="brand-sub"><span id="brandHost">…</span> trifft … — fiktive Talkshow mit KI-Stimmen</div>
+      </div>
+    </div>
+    <nav class="tabs">
+      <button class="tab is-active" data-tab="new">Neues Interview</button>
+      <button class="tab" data-tab="archive">Archiv <span class="tab-badge" id="archiveCount">0</span></button>
+    </nav>
+    <div class="topbar-right">
+      <button class="model-chip" id="engineChip" title="Sprach-Engine — klicken für Einstellungen"><span class="led" id="engineLed"></span><span id="engineText">Engine …</span></button>
+      <button class="model-chip" id="modelChip" title="Aktives KI-Backend — klicken für Einstellungen"><span class="led" id="modelLed"></span><span id="modelText">Backend wird geprüft…</span></button>
+      <button class="icon-btn" id="settingsBtn" title="Einstellungen">⚙</button>
+    </div>
+  </header>
+
+  <div id="updateBar" class="notice-bar hidden"></div>
+
+  <main class="wrap">
+    <section id="view-new" class="view">
+
+      <section class="card step" id="step1">
+        <h2><span class="num">1</span> Wer ist der Gast?</h2>
+        <div class="row search-row">
+          <input id="searchInput" type="text" placeholder="Name eingeben — Person, Figur, Legende … (Enter sucht)" autocomplete="off" />
+          <button id="searchBtn" class="btn">Suchen</button>
+        </div>
+        <p class="muted small">Gesucht wird in der deutschen und englischen Wikipedia. Kein Treffer? Dann unten beschreiben oder einen Link angeben.</p>
+        <div id="hits" class="hits"></div>
+        <p id="hitsEmpty" class="notice hidden"></p>
+        <details id="manualBox" class="manual">
+          <summary>Oder: Gast selbst beschreiben / Link angeben</summary>
+          <div class="manual-grid">
+            <label class="block"><span>Name des Gastes</span><input id="manualName" type="text" maxlength="120" placeholder="z. B. Kapitän Nemo" /></label>
+            <label class="block"><span>Link mit Beschreibung (Wikipedia, IMDb, Fandom, …)</span><input id="manualUrl" type="url" placeholder="https://…" /></label>
+            <label class="block span2"><span>Beschreibung in eigenen Worten (mindestens 20 Zeichen)</span><textarea id="manualText" rows="5" placeholder="Wer ist das, wofür bekannt, wie spricht die Person, was ist wichtig …"></textarea></label>
+          </div>
+          <p class="muted small">Entweder Link oder Beschreibung — ist beides ausgefüllt, gewinnt der Link.</p>
+        </details>
+        <div class="actions">
+          <button id="researchBtn" class="btn primary" disabled>Recherche starten</button>
+          <span id="researchHint" class="muted small"></span>
+        </div>
+      </section>
+
+      <section class="card step locked" id="step2">
+        <h2><span class="num">2</span> Recherche-Ergebnis</h2>
+        <div id="profile" class="profile"></div>
+        <div class="row wrap-row">
+          <label class="block grow"><span>Name im Interview</span><input id="guestName" type="text" maxlength="80" /></label>
+          <label class="block grow"><span>Thema des Gesprächs</span><input id="themeInput" type="text" maxlength="200" placeholder="frei oder Vorschlag anklicken" /></label>
+        </div>
+        <div id="themeChips" class="chips"></div>
+      </section>
+
+      <section class="card step locked" id="step3">
+        <h2><span class="num">3</span> Sprache des Interviews</h2>
+        <div class="row wrap-row">
+          <div class="pills" id="langPills"><button data-lang="de" class="is-active">Deutsch</button><button data-lang="en">English</button></div>
+          <div id="formalityWrap" class="row" style="align-items:center;gap:10px">
+            <span class="muted small">Anrede zwischen <span class="hostName">Host</span> und Gast</span>
+            <div class="pills" id="formalityPills"><button data-formality="sie" class="is-active">Siezen</button><button data-formality="du">Duzen</button></div>
+          </div>
+        </div>
+        <p class="muted small">Die Anrede gilt für alle Teile; ein Wechsel im Skript wird erkannt und der Teil neu geschrieben.</p>
+      </section>
+
+      <section class="card step locked" id="step4">
+        <h2><span class="num">4</span> Stimme des Gastes <span class="muted small">(optional)</span></h2>
+        <div class="voice-modes">
+          <label class="vmode"><input type="radio" name="vmode" value="default" checked /> <span>Standardstimme <em id="defaultVoiceName"></em></span></label>
+          <label class="vmode"><input type="radio" name="vmode" value="library" /> <span>Aus der Stimmenbibliothek</span><select id="voiceSelect" disabled></select></label>
+          <label class="vmode"><input type="radio" name="vmode" value="clone" /> <span>Stimmprobe hochladen oder aufnehmen und klonen</span></label>
+          <label class="vmode" id="designMode"><input type="radio" name="vmode" value="design" /> <span>Passende Stimme entwerfen (KI) — aus Profil, Epoche und Herkunft; mit Vorhören <em id="designAvail" class="muted"></em></span></label>
+        </div>
+        <div id="designBox" class="clone-box hidden">
+          <div class="row wrap-row">
+            <button id="designSuggestBtn" class="btn">✨ Vorschlag aus der Recherche</button>
+            <span id="designStatus" class="muted small"></span>
+          </div>
+          <div id="designPanel" class="hidden">
+            <p id="designRationale" class="muted small"></p>
+            <div class="row wrap-row design-attrs">
+              <label class="block"><span>Geschlecht</span><select id="dGender"><option value="male">männlich</option><option value="female">weiblich</option></select></label>
+              <label class="block"><span>Alter</span><select id="dAge"><option value="child">Kind</option><option value="teenager">Jugendlich</option><option value="young adult">jung</option><option value="middle-aged">mittleres Alter</option><option value="elderly">alt</option></select></label>
+              <label class="block"><span>Tonhöhe</span><select id="dPitch"><option value="very low">sehr tief</option><option value="low">tief</option><option value="moderate">mittel</option><option value="high">hoch</option><option value="very high">sehr hoch</option></select></label>
+              <label class="block" id="dAccentWrap"><span>Akzent (nur Englisch)</span><select id="dAccent"><option value="">keiner</option><option>American</option><option>Australian</option><option>British</option><option>Canadian</option><option>Chinese</option><option>Indian</option><option>Japanese</option><option>Korean</option><option>Portuguese</option><option>Russian</option></select></label>
+            </div>
+            <div class="row wrap-row">
+              <button id="designPreviewBtn" class="btn">▶ Vorhören</button>
+              <button id="designDiceBtn" class="btn ghost" title="Gleiche Attribute, andere Stimme">🎲 Andere Variante</button>
+              <audio id="designPlayer" controls class="player hidden"></audio>
+            </div>
+            <div class="row wrap-row">
+              <label class="block grow"><span>Als Stimme speichern unter</span><input id="designName" type="text" maxlength="40" /></label>
+              <button id="designSaveBtn" class="btn primary" disabled>✓ Diese Stimme übernehmen</button>
+            </div>
+            <div class="speechstyle" id="speechStyle"></div>
+            <label class="check"><input id="speechStyleUse" type="checkbox" checked /> <span>Sprechweise (Epoche, Herkunft, Redewendungen) ins Skript übernehmen</span></label>
+          </div>
+        </div>
+        <div id="cloneBox" class="clone-box hidden">
+          <div class="row wrap-row clone-sources">
+            <div id="dropzone" class="dropzone grow" tabindex="0">
+              <input id="fileInput" type="file" accept="audio/*,video/*,.wav,.mp3,.m4a,.flac,.ogg,.opus,.aac,.wma,.mp4,.webm,.mkv,.mov" hidden />
+              <span class="dz-icon">📂</span>
+              <p class="dz-headline" id="dzHeadline">Stimmprobe hier ablegen oder klicken</p>
+              <p class="muted small">MP3 oder WAV (auch M4A, FLAC, OGG, Video) · mindestens ~10 Sekunden Sprache</p>
+            </div>
+            <div class="mic-box">
+              <span class="dz-icon">🎤</span>
+              <p class="dz-headline">Oder ins Mikrofon sprechen</p>
+              <div class="row"><button id="micBtn" class="btn">● Aufnahme starten</button><span id="micTime" class="muted small"></span></div>
+              <audio id="micPlayer" controls class="player hidden"></audio>
+            </div>
+          </div>
+          <div class="row wrap-row">
+            <label class="block grow"><span>Name der Stimme</span><input id="cloneName" type="text" maxlength="40" placeholder="z. B. Nemo" /></label>
+            <label class="block"><span>Sprache der Probe</span><select id="cloneLang"><option value="auto">automatisch</option><option value="de">Deutsch</option><option value="en">Englisch</option><option value="es">Spanisch</option><option value="fr">Französisch</option><option value="it">Italienisch</option><option value="pt">Portugiesisch</option></select></label>
+            <button id="cloneBtn" class="btn" disabled>Stimme klonen</button>
+          </div>
+          <p id="cloneStatus" class="muted small"></p>
+        </div>
+        <p class="muted small"><span class="hostName">Host</span> spricht mit <strong id="hostVoiceName">…</strong> (unter ⚙ änderbar).</p>
+      </section>
+
+      <section class="card step locked" id="step5">
+        <h2><span class="num">5</span> Flavor der Show</h2>
+        <div id="flavors" class="flavors"></div>
+        <label class="block"><span>Oder eigener Flavor (schließt die Auswahl oben aus)</span><textarea id="customFlavor" rows="2" placeholder="z. B. Ein Interview als Kochsendung, bei der jede Antwort ein Rezept ist …"></textarea></label>
+      </section>
+
+      <section class="card step locked" id="step6">
+        <h2><span class="num">6</span> Titel &amp; Optionen</h2>
+        <div class="row">
+          <label class="block grow"><span>Titel des Interviews</span><input id="titleInput" type="text" maxlength="120" /></label>
+          <button id="titleResetBtn" class="btn ghost" title="Titelvorschlag aus Gast, Flavor und Thema neu erzeugen">↻ Vorschlag</button>
+        </div>
+        <div class="duration">
+          <label for="durationRange"><span>Dauer des Gesprächs</span> <strong id="durationLabel">8 Minuten</strong> <em id="durationEst" class="muted small"></em></label>
+          <input id="durationRange" type="range" min="3" max="30" step="1" value="8" />
+          <div class="range-ticks"><span>3 min</span><span>30 min</span></div>
+        </div>
+        <div class="row wrap-row options">
+          <label class="block"><span>Teile</span><input id="partsInput" type="number" min="1" max="6" value="2" /></label>
+          <label class="check"><input id="autoAudio" type="checkbox" checked /> <span>Audio nach dem Skript automatisch erzeugen</span></label>
+          <label class="check"><input id="disclaimerCheck" type="checkbox" checked /> <span><span class="hostName">Host</span> spricht vorab den Hinweis „fiktive Aufnahme, KI-Stimmen, nur zu Bildungszwecken"</span></label>
+        </div>
+        <div class="actions">
+          <button id="generateBtn" class="btn primary big" disabled>Interview generieren</button>
+          <span id="generateHint" class="muted small"></span>
+        </div>
+      </section>
+
+      <section class="card step locked" id="step7">
+        <h2><span class="num">7</span> Ergebnis</h2>
+        <div id="result"></div>
+      </section>
+    </section>
+
+    <section id="view-archive" class="view hidden">
+      <section class="card">
+        <h2>Archiv <span class="muted small">— umbenennen (✎), verschieben (↑↓ oder ziehen), löschen (🗑)</span></h2>
+        <div id="archive" class="archive"></div>
+        <p id="archiveEmpty" class="muted hidden">Noch keine Interviews. Das erste entsteht unter „Neues Interview".</p>
+      </section>
+    </section>
+  </main>
+
+  <div id="jobbar" class="jobbar hidden">
+    <div class="jobbar-main">
+      <span id="jobTitle" class="job-title">…</span>
+      <div class="bar"><div id="jobFill" class="bar-fill"></div></div>
+      <span id="jobMeta" class="job-meta"></span>
+      <button id="jobLogBtn" class="btn small ghost">Protokoll</button>
+    </div>
+    <pre id="jobLog" class="job-log hidden"></pre>
+  </div>
+
+  <div class="sheet-backdrop hidden" id="settingsBackdrop">
+    <div class="sheet" role="dialog" aria-modal="true">
+      <div class="sheet-head"><h2>Einstellungen</h2><button class="icon-btn" id="settingsClose">✕</button></div>
+
+      <h3>Show &amp; Host</h3>
+      <div class="settings-grid">
+        <label class="block"><span>Name des Hosts (spricht im Skript, steht im Video)</span><input id="cfgHostName" type="text" maxlength="40" /></label>
+        <label class="block"><span>Name der Show</span><input id="cfgShowName" type="text" maxlength="60" /></label>
+        <label class="block"><span>Stimme des Hosts</span><select id="cfgHostVoice"></select></label>
+        <label class="block"><span>Web-Adresse im Video-Abbinder (optional)</span><input id="cfgShowUrl" type="text" maxlength="120" placeholder="z. B. example.org" /></label>
+      </div>
+
+      <h3>KI-Backend</h3>
+      <p class="muted small">„Auto“ probiert die eingerichteten Anbieter in dieser Reihenfolge; Quota- oder Login-Fehler springen weiter. Eine manuelle Wahl schaltet den Fallback ab. API-Keys werden verschlüsselt im Benutzerprofil abgelegt und nie angezeigt.</p>
+      <div id="backends" class="backends"></div>
+      <div id="backendBanner" class="banner hidden"></div>
+
+      <h3>Sprach-Engine</h3>
+      <div id="engineBox" class="engine-box muted small">…</div>
+
+      <h3>Stimmen &amp; Audio</h3>
+      <div class="settings-grid">
+        <label class="block"><span>TTS-Engine</span><select id="cfgTts"><option value="auto">Auto — OmniVoice (GPU), Rückfall Pocket TTS (empfohlen)</option><option value="omnivoice">Nur OmniVoice (GPU)</option><option value="pocket">Nur Pocket TTS (CPU)</option></select></label>
+        <label class="block"><span>Standard-Gaststimme Deutsch</span><select id="cfgGuestDe"></select></label>
+        <label class="block"><span>Standard-Gaststimme English</span><select id="cfgGuestEn"></select></label>
+        <label class="block"><span>Dauer (Vorgabe, Minuten 3–30)</span><input id="cfgDuration" type="number" min="3" max="30" /></label>
+        <label class="block"><span>Teile (Vorgabe)</span><input id="cfgParts" type="number" min="1" max="6" /></label>
+        <label class="block"><span>Lautstärke-Angleich aller Zeilen (Ziel dBFS, 0 = aus)</span><input id="cfgNorm" type="number" min="-30" max="0" /></label>
+        <label class="check" style="grid-column:1/-1"><input id="cfgVerify" type="checkbox" /> <span>Aussprache-Riegel: jede Zeile mit Whisper nachhören, Versprecher mit anderem Seed neu sprechen (kostet ~1 s je Zeile)</span></label>
+        <label class="check" style="grid-column:1/-1"><input id="cfgUpdates" type="checkbox" /> <span>Beim Start auf GitHub nach einer neuen Version fragen (Opt-in, sonst keine Verbindung)</span></label>
+      </div>
+      <div id="voiceList" class="voice-list"></div>
+      <div class="sheet-actions"><a class="btn ghost" href="setup.html">Setup-Assistent</a><button class="btn primary" id="settingsSave">Speichern</button></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="app.js"></script>
+</body>
+</html>

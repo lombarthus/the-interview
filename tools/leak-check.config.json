@@ -1,0 +1,122 @@
+{
+  "_comment": "Generische Muster (im Repo). Persönliche Wörter gehören in tools/leak-check.local.json (gitignored) — Vorlage: tools/leak-check.local.example.json",
+  "secretPatterns": [
+    {
+      "name": "Google API key (AIza…)",
+      "pattern": "AIza[0-9A-Za-z_-]{30,}"
+    },
+    {
+      "name": "Google API key (AQ.…)",
+      "pattern": "\\bAQ\\.[A-Za-z0-9_-]{40,}"
+    },
+    {
+      "name": "Anthropic key",
+      "pattern": "sk-ant-[A-Za-z0-9_-]{20,}"
+    },
+    {
+      "name": "OpenAI key",
+      "pattern": "\\bsk-(proj-)?[A-Za-z0-9_-]{20,}"
+    },
+    {
+      "name": "GitHub token",
+      "pattern": "\\b(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{40,}"
+    },
+    {
+      "name": "Slack token",
+      "pattern": "xox[baprs]-[A-Za-z0-9-]{10,}"
+    },
+    {
+      "name": "AWS access key",
+      "pattern": "\\bAKIA[0-9A-Z]{16}\\b"
+    },
+    {
+      "name": "Hugging Face token",
+      "pattern": "\\bhf_[A-Za-z0-9]{30,}"
+    },
+    {
+      "name": "Private key block",
+      "pattern": "-----BEGIN [A-Z ]*PRIVATE KEY-----"
+    },
+    {
+      "name": "JWT",
+      "pattern": "\\beyJ[A-Za-z0-9_-]{10,}\\.[A-Za-z0-9_-]{10,}\\.[A-Za-z0-9_-]{10,}"
+    },
+    {
+      "name": "Bearer token literal",
+      "pattern": "[Bb]earer\\s+[A-Za-z0-9._-]{30,}"
+    },
+    {
+      "name": "Password assignment",
+      "pattern": "(passw(or)?d|passwort)\\s*[=:]\\s*['\"][^'\"]{6,}['\"]",
+      "flags": "gi"
+    },
+    {
+      "name": "Windows user profile path",
+      "pattern": "[A-Za-z]:\\\\Users\\\\(?!Public\\b)[^\\\\\\s\"']+"
+    },
+    {
+      "name": "E-Mail-Adresse",
+      "pattern": "[A-Za-z0-9._%+-]+@(?!example\\.(com|org)|users\\.noreply\\.github\\.com)[A-Za-z0-9.-]+\\.[A-Za-z]{2,}"
+    },
+    {
+      "name": "Private IPv4 (kein 127.0.0.1)",
+      "pattern": "\\b(10\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}|192\\.168\\.\\d{1,3}\\.\\d{1,3}|172\\.(1[6-9]|2\\d|3[01])\\.\\d{1,3}\\.\\d{1,3})\\b"
+    },
+    {
+      "name": "Absoluter Projektpfad (Laufwerk)",
+      "pattern": "\\b[D-Z]:\\\\[A-Za-z0-9 _.-]+\\\\"
+    }
+  ],
+  "forbiddenWords": [
+    "SARCFM_",
+    "sarc-fm.net",
+    "HERMANN_",
+    ".broadcast/",
+    "launchpad/apps/",
+    "pinokio",
+    "OMNIVOICE_VENV_PYTHON",
+    "TTS_PLAYER_VOICES_DIR"
+  ],
+  "forbiddenExtensions": [
+    ".wav",
+    ".mp3",
+    ".mp4",
+    ".m4a",
+    ".flac",
+    ".ogg",
+    ".opus",
+    ".webm",
+    ".pem",
+    ".key",
+    ".pfx",
+    ".p12",
+    ".env",
+    ".bak",
+    ".safetensors",
+    ".bin",
+    ".pt",
+    ".pth",
+    ".ckpt",
+    ".zip",
+    ".7z",
+    ".exe",
+    ".dll",
+    ".dpapi"
+  ],
+  "forbiddenFileNames": [
+    "^\\.env",
+    "\\.bak(-|$)",
+    "^secrets\\.(dpapi|plain\\.json|json)$",
+    "^voice_settings\\.json$",
+    "^auth\\.json$",
+    "^config\\.local\\.",
+    "^leak-check\\.local\\.json$",
+    "^\\.npmrc$",
+    "^id_(rsa|ed25519)"
+  ],
+  "allowFiles": [],
+  "entropy": {
+    "minLength": 40,
+    "minBits": 4.6
+  }
+}

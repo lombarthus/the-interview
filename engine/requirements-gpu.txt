@@ -1,0 +1,5 @@
+-r requirements-base.txt
+# GPU-Profil: OmniVoice (Voice Clone + Voice Design) und Whisper large-v3-turbo über transformers
+omnivoice>=0.1.0
+transformers>=4.45
+accelerate>=0.30

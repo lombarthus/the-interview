@@ -1,0 +1,8 @@
+{
+  "_comment": "Nach tools/leak-check.local.json kopieren (gitignored) und mit persönlichen Wörtern füllen: Windows-Benutzername, E-Mail, Hostnamen, Namen von Klonstimmen, Sätze aus Stimmproben, Kontonamen. Groß-/Kleinschreibung egal.",
+  "forbiddenWords": [
+    "MeinWindowsBenutzername",
+    "meine.adresse@example.org",
+    "Name_einer_privaten_Klonstimme"
+  ]
+}

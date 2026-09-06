@@ -1,0 +1,33 @@
+{
+  "_comment": "Feste Download-Quellen mit SHA-256. Aktualisieren mit: node tools/pin-downloads.js (prüft die Summen gegen die Herausgeber-Dateien).",
+  "node": {
+    "version": "24.11.1",
+    "url": "https://nodejs.org/dist/v24.11.1/node-v24.11.1-win-x64.zip",
+    "sha256": "5355ae6d7c49eddcfde7d34ac3486820600a831bf81dc3bdca5c8db6a9bb0e76",
+    "checksumUrl": "https://nodejs.org/dist/v24.11.1/SHASUMS256.txt"
+  },
+  "uv": {
+    "version": "0.12.10",
+    "url": "https://github.com/astral-sh/uv/releases/download/0.12.10/uv-x86_64-pc-windows-msvc.zip",
+    "sha256": "f65744f94072152b1f86ba2aace4d01f1124d9a8ecb235805039e3718c36cac2",
+    "checksumUrl": "https://github.com/astral-sh/uv/releases/download/0.12.10/uv-x86_64-pc-windows-msvc.zip.sha256"
+  },
+  "ffmpeg": {
+    "version": "9.0.1",
+    "url": "https://www.gyan.dev/ffmpeg/builds/packages/ffmpeg-9.0.1-essentials_build.zip",
+    "sha256": "fec81ae03971d9dd4be3ebe02e263bd2ec1d789483f931bdba5f5715e65da2e9",
+    "checksumUrl": "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip.sha256",
+    "bytes": 111253802,
+    "license": "GPL-3.0 (gyan.dev essentials build) — wird beim Setup geladen, nie mitgeliefert"
+  },
+  "python": { "version": "3.11", "via": "uv python install" },
+  "torch": {
+    "gpuIndex": "https://download.pytorch.org/whl/cu128",
+    "cpuIndex": "https://download.pytorch.org/whl/cpu"
+  },
+  "models": {
+    "gpu": ["k2-fsa/OmniVoice", "openai/whisper-large-v3-turbo"],
+    "cpu": ["Systran/faster-whisper-small"],
+    "pocket": "kyutai pocket-tts (Gewichte lädt die Bibliothek beim ersten Laden selbst)"
+  }
+}

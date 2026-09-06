@@ -1,0 +1,50 @@
+# --- Laufzeit / Daten (nie ins Repo) ---
+work/
+dist/
+runtime/
+data/
+voices/
+models/
+archive/
+logs/
+*.log
+
+# --- Geheimnisse & Persönliches ---
+.env
+.env.*
+*.dpapi
+secrets.*
+tools/leak-check.local.json
+*.local.json
+!tools/leak-check.local.example.json
+
+# --- Medien & Modelle ---
+*.wav
+*.mp3
+*.mp4
+*.m4a
+*.flac
+*.ogg
+*.opus
+*.webm
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.ckpt
+
+# --- Build-Reste, Backups, Werkzeuge ---
+*.bak
+*.bak-*
+*.tmp
+*.part
+*.zip
+*.7z
+*.exe
+*.dll
+__pycache__/
+*.pyc
+.venv/
+node_modules/
+.DS_Store
+Thumbs.db
