@@ -85,6 +85,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           draft: true
+          name: The Interview ${{ steps.ver.outputs.version }}
           files: |
             dist/TheInterview-Setup-*.exe
             dist/TheInterview-portable-*.zip

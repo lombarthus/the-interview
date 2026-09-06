@@ -13,7 +13,10 @@ logs/
 .env
 .env.*
 *.dpapi
-secrets.*
+secrets.dpapi
+secrets.json
+secrets.plain.json
+!app/lib/secrets.js
 tools/leak-check.local.json
 *.local.json
 !tools/leak-check.local.example.json
