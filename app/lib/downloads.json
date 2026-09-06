@@ -20,7 +20,14 @@
     "bytes": 111253802,
     "license": "GPL-3.0 (gyan.dev essentials build) — wird beim Setup geladen, nie mitgeliefert"
   },
-  "python": { "version": "3.11", "via": "uv python install" },
+  "python": {
+    "version": "3.11.16",
+    "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260901/cpython-3.11.16%2B20260901-x86_64-pc-windows-msvc-install_only_stripped.tar.gz",
+    "sha256": "06cbe479e039f5b9cb5640c286d790074d63f549f92a32d599a3748293bd4510",
+    "checksumUrl": "https://github.com/astral-sh/python-build-standalone/releases/download/20260901/SHA256SUMS",
+    "bytes": 25189257,
+    "license": "PSF (python-build-standalone, install_only_stripped) — wird beim Setup geladen und per tar entpackt; kein uv-Link, keine Registry"
+  },
   "torch": {
     "gpuIndex": "https://download.pytorch.org/whl/cu130",
     "cpuIndex": "https://download.pytorch.org/whl/cpu"

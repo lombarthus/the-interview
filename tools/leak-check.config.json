@@ -115,6 +115,10 @@
     "^id_(rsa|ed25519)"
   ],
   "allowFiles": [],
+  "allowTokens": [
+    "^(com/)?astral-sh/python-build-standalone/releases/download/[0-9]{8}/",
+    "^cpython-[0-9.]+(%2B|\\+)[0-9]{8}-x86_64-pc-windows-msvc-install_only(_stripped)?\\.tar\\.gz$"
+  ],
   "entropy": {
     "minLength": 40,
     "minBits": 4.6

@@ -55,7 +55,7 @@ CPU note: Pocket TTS voice-cloning weights are gated on Hugging Face. Create a f
 ## Privacy & security
 
 - Binds to `127.0.0.1` only. No telemetry. No update check unless you opt in.
-- Network connections: Wikipedia, the AI provider you chose, links you paste, and — during setup — GitHub, python.org builds via uv, PyPI, download.pytorch.org, huggingface.co. See [PRIVACY.md](PRIVACY.md).
+- Network connections: Wikipedia, the AI provider you chose, links you paste, and — during setup — GitHub (python-build-standalone), PyPI, download.pytorch.org, huggingface.co. See [PRIVACY.md](PRIVACY.md).
 - Downloads are verified against SHA-256 checksums embedded in the app.
 - Nothing from the original author's environment is in this repository or the installer: the voice library starts empty, all names are configurable. The repo is guarded by a leak check on every commit and in CI (`tools/leak-check.js`, gitleaks).
 

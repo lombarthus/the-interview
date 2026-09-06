@@ -6,7 +6,7 @@
 //
 //  system   Windows, Platz, GPU (nvidia-smi), Werkzeuge -> Profil gpu | cpu
 //  ffmpeg   Zip laden (SHA-256), entpacken, nach tools/ffmpeg/
-//  python   uv python install 3.11 + uv venv
+//  python   python-build-standalone-Archiv (SHA-256) + uv venv
 //  torch    torch/torchaudio (cu130 für GPU — der cu128-Index endet bei 2.11, transformers 5 braucht neuer; sonst CPU-Wheel)
 //  packages engine/requirements-<profil>.txt
 //  models   engine/fetch_models.py (HF-Cache im Datenordner)
@@ -69,6 +69,11 @@ function runLogged(cmd, args, { env, cwd, log, timeoutMs = 3 * 60 * 60 * 1000, o
     child.on('close', (code) => { clearTimeout(t); if (buf.trim() && log) log(buf.trim()); resolve({ code, out }); });
   });
 }
+// Windows-eigenes bsdtar (System32) — ein GNU-tar aus Git/MSYS im PATH würde „C:“ als Rechnernamen lesen.
+function tarExe() {
+  const sys = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'tar.exe');
+  return fs.existsSync(sys) ? sys : 'tar';
+}
 function tryRun(cmd, args, timeoutMs = 15000) {
   try { const r = spawnSync(cmd, args, { windowsHide: true, encoding: 'utf8', timeout: timeoutMs }); return { ok: r.status === 0, out: `${r.stdout || ''}${r.stderr || ''}`.trim() }; }
   catch (e) { return { ok: false, out: String(e.message || e) }; }
@@ -88,7 +93,7 @@ function freeDiskGb(dir) {
 async function stepSystem(log) {
   const gpu = probeGpu();
   const free = freeDiskGb(paths.home);
-  const tar = tryRun('tar', ['--version']).ok;
+  const tar = tryRun(tarExe(), ['--version']).ok;
   const ps = tryRun('powershell.exe', ['-NoProfile', '-Command', '$PSVersionTable.PSVersion.Major']);
   const uvOk = tryRun(paths.uvPath(), ['--version']);
   const gpuOk = Boolean(gpu && gpu.vramMb >= 6000);
@@ -135,16 +140,33 @@ async function stepFfmpeg(log, progress) {
 }
 
 // --- Schritt 3: Python -----------------------------------------------------------------------
-async function stepPython(log) {
+// Python kommt als geprüftes Archiv von python-build-standalone (dieselbe Quelle, die uv nutzt) und wird
+// per tar entpackt. Bewusst NICHT `uv python install`: das legt einen Verzeichnis-Link, Starter in
+// ~/.local/bin und Registry-Einträge an — und der Link scheitert auf manchen Windows-11-Systemen
+// mit „nicht vertrauenswürdiger Bereitstellungspunkt" (os error 448). uv baut nur noch das venv.
+function basePython() { return path.join(paths.pythonDir, `cpython-${DL.python.version}`, 'python', 'python.exe'); }
+async function stepPython(log, progress) {
   const py = paths.venvPython();
   if (py && tryRun(py, ['--version']).ok) { const d = `venv vorhanden: ${tryRun(py, ['--version']).out}`; log(d); mark('python', 'done', d); return d; }
-  const uv = paths.uvPath();
-  log(`uv python install ${DL.python.version} (in ${path.join(paths.pythonDir, 'installs')}) …`);
-  // --no-bin/--no-registry: nichts außerhalb des Datenordners anlegen (kein ~/.local/bin, keine Registry).
-  let r = await runLogged(uv, ['python', 'install', DL.python.version, '--no-bin', '--no-registry'], { env: uvEnv(), log });
-  if (r.code !== 0) throw fail('uv python install', r);
-  log('uv venv …');
-  r = await runLogged(uv, ['venv', paths.venvDir, '--python', DL.python.version, '--seed'], { env: uvEnv(), log });
+  const exe = basePython();
+  if (!(fs.existsSync(exe) && tryRun(exe, ['--version']).ok)) {
+    if (!tryRun(tarExe(), ['--version']).ok) throw new Error('tar.exe fehlt (gehört seit Windows 10 1803 zum System)');
+    const tgz = path.join(paths.workDir, 'python.tar.gz');
+    log(`Lade Python ${DL.python.version} (python-build-standalone, ${Math.round(DL.python.bytes / 1e6)} MB) …`);
+    await downloadFile(DL.python.url, tgz, { sha256: DL.python.sha256, onProgress: (p) => progress({ done: p.done, total: p.total, label: `Python: ${Math.round(p.done / 1e6)} / ${Math.round((p.total || DL.python.bytes) / 1e6)} MB` }) });
+    log('Prüfsumme ok, entpacke …');
+    const base = path.dirname(path.dirname(exe));
+    fs.rmSync(base, { recursive: true, force: true });
+    fs.mkdirSync(base, { recursive: true });
+    const t = await runLogged(tarExe(), ['-xzf', tgz, '-C', base], { log });
+    if (t.code !== 0) throw fail('tar', t);
+    try { fs.unlinkSync(tgz); } catch { /* egal */ }
+    if (!tryRun(exe, ['--version']).ok) throw new Error('Python startet nicht nach dem Entpacken');
+  }
+  // Reste älterer Fassungen (uv-verwaltete Installation samt Verzeichnis-Link) wegräumen.
+  try { fs.rmSync(path.join(paths.pythonDir, 'installs'), { recursive: true, force: true }); } catch { /* egal */ }
+  log(`uv venv (Basis: ${tryRun(exe, ['--version']).out}) …`);
+  const r = await runLogged(paths.uvPath(), ['venv', paths.venvDir, '--python', exe, '--seed'], { env: uvEnv(), log });
   if (r.code !== 0) throw fail('uv venv', r);
   const v = tryRun(paths.venvPython(), ['--version']);
   if (!v.ok) throw new Error('venv-Python startet nicht');

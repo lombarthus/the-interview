@@ -29,6 +29,7 @@ const wordRes = words.map((w) => ({ name: `Wort „${w.length > 24 ? w.slice(0, 
 const badExt = new Set((cfg.forbiddenExtensions || []).map((e) => e.toLowerCase()));
 const badNames = (cfg.forbiddenFileNames || []).map((n) => new RegExp(n, 'i'));
 const allowFiles = new Set(cfg.allowFiles || []);
+const allowTokens = (cfg.allowTokens || []).map((r) => new RegExp(r));   // bekannte harmlose Token (z. B. Archivnamen)
 const ENTROPY_MIN_LEN = cfg.entropy && cfg.entropy.minLength || 32;
 const ENTROPY_MIN = cfg.entropy && cfg.entropy.minBits || 4.2;
 const BINARY_OK = new Set(['.png', '.ico', '.jpg', '.jpeg', '.gif', '.woff', '.woff2']);
@@ -64,6 +65,7 @@ function scanText(label, text) {
       for (const tok of line.match(/[A-Za-z0-9+/_\-=]{32,}/g) || []) {
         if (/^[0-9a-f]{32,64}$/i.test(tok)) continue;             // Hex-Hashes (Prüfsummen, Git) sind keine Keys
         if (/^[A-Za-z_\-]+$/.test(tok) || /^[0-9]+$/.test(tok)) continue;
+        if (allowTokens.some((re) => re.test(tok))) continue;
         if (tok.length >= ENTROPY_MIN_LEN && entropy(tok) >= ENTROPY_MIN) findings.push({ file: label, line: i + 1, what: 'hochentropisches Token (Key?)', snippet: tok.slice(0, 16) + '…' });
       }
     }

@@ -65,7 +65,7 @@ Hinweis CPU: Die Klon-Gewichte von Pocket TTS sind bei Hugging Face freigabepfli
 ## Datenschutz und Sicherheit
 
 - Lauscht nur auf `127.0.0.1`. Keine Telemetrie. Keine Update-Prüfung ohne Opt-in.
-- Netzverbindungen: Wikipedia, der gewählte KI-Anbieter, eingefügte Links und — beim Setup — GitHub, python.org-Builds über uv, PyPI, download.pytorch.org, huggingface.co. Details in [PRIVACY.md](PRIVACY.md).
+- Netzverbindungen: Wikipedia, der gewählte KI-Anbieter, eingefügte Links und — beim Setup — GitHub (python-build-standalone), PyPI, download.pytorch.org, huggingface.co. Details in [PRIVACY.md](PRIVACY.md).
 - Downloads werden gegen in der App hinterlegte SHA-256-Summen geprüft.
 - Nichts aus der Umgebung des ursprünglichen Autors steckt im Repo oder Installer: die Stimmbibliothek startet leer, alle Namen sind konfigurierbar. Das Repo wird bei jedem Commit und in CI auf Leaks geprüft (`tools/leak-check.js`, gitleaks).
 

@@ -21,5 +21,9 @@ async function text(url) { const r = await fetch(url, { signal: AbortSignal.time
   console.log(`uv     ${uvSha === dl.uv.sha256 ? 'ok' : 'MISMATCH'} ${uvSha}`); if (uvSha !== dl.uv.sha256) bad++;
   const ffSha = (await text(dl.ffmpeg.checksumUrl)).trim().split(/\s+/)[0];
   console.log(`ffmpeg ${ffSha === dl.ffmpeg.sha256 ? 'ok' : 'MISMATCH (gyan.dev hat vermutlich eine neue Version — URL + Summe in downloads.json aktualisieren)'} ${ffSha}`); if (ffSha !== dl.ffmpeg.sha256) bad++;
+  const pyName = decodeURIComponent(path.basename(dl.python.url));
+  const pyLine = (await text(dl.python.checksumUrl)).split('\n').find((l) => l.includes(pyName));
+  const pySha = pyLine ? pyLine.split(/\s+/)[0] : '';
+  console.log(`python ${pySha === dl.python.sha256 ? 'ok' : 'MISMATCH'} ${pySha}`); if (pySha !== dl.python.sha256) bad++;
   process.exit(bad ? 1 : 0);
 })().catch((e) => { console.error(e.message); process.exit(1); });
