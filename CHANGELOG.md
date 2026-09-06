@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.3 — 2026-09-06
+
+- Setup step "Speech engine" (GPU profile) failed because the CUDA wheel index also lists old third-party packages (e.g. `requests`) and uv's first-index strategy stopped there. The step now resolves across all indexes (`--index-strategy unsafe-best-match`) and pins torch/torchaudio to the installed `+cu130` builds so PyPI cannot swap them for CPU builds.
+
 ## 1.0.2 — 2026-09-06
 
 - Setup step "Python" no longer uses `uv python install`: on some Windows 11 systems its directory link failed with "untrusted mount point" (os error 448). Python 3.11.16 is now downloaded as a checksum-pinned python-build-standalone archive and unpacked with `tar`; uv only creates the venv. Nothing is written outside the data folder.

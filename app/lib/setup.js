@@ -217,7 +217,17 @@ async function stepPackages(log, progress) {
   progress({ label: 'Engine-Pakete werden installiert' });
   log(`uv pip install -r ${path.basename(req)} …`);
   const pargs = ['pip', 'install', '--python', paths.venvPython()];
-  if (profile === 'gpu') pargs.push('--index', DL.torch.gpuIndex);   // torch bleibt der CUDA-Build (Index mit Vorrang)
+  if (profile === 'gpu') {
+    // Der CUDA-Index enthält auch alte Fremdpakete (z. B. requests). Mit „first-index" bräche uv dort ab,
+    // statt auf PyPI weiterzusuchen — also „unsafe-best-match" über alle Indizes, und torch/torchaudio
+    // exakt auf die installierten +cu130-Versionen festnageln, damit PyPI sie nicht gegen CPU-Builds tauscht.
+    const pins = tryRun(paths.venvPython(), ['-c', 'import torch,torchaudio;print(torch.__version__);print(torchaudio.__version__)'], 120000);
+    const [tv, tav] = pins.ok ? pins.out.split(/\r?\n/).map((l) => l.trim()).filter((l) => /^\d/.test(l)) : [];
+    pargs.push('--index', DL.torch.gpuIndex, '--index-strategy', 'unsafe-best-match');
+    if (tv) pargs.push(`torch==${tv}`);
+    if (tav) pargs.push(`torchaudio==${tav}`);
+    log(`torch bleibt bei ${tv || '?'}, torchaudio bei ${tav || '?'}`);
+  }
   pargs.push('-r', req);
   const r = await runLogged(paths.uvPath(), pargs, { env: uvEnv(), log });
   if (r.code !== 0) throw fail('Paket-Installation', r);
