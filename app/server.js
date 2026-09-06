@@ -535,6 +535,7 @@ const server = http.createServer(async (req, res) => {
       const body = await readJson(req);
       if (!secrets.NAMES.includes(body.name)) return json(res, 400, { error: 'name muss einer von ' + secrets.NAMES.join(', ') + ' sein' });
       secrets.set(body.name, body.value);
+      if (body.name === 'hf' && engine.running()) { engine.stop(); setTimeout(() => { try { engine.start(); } catch { /* Setup fehlt */ } }, 800); }   // Token geht nur als Env in den Kindprozess
       return json(res, 200, secrets.status());
     }
     if (p === '/api/llm/status' && m === 'GET') return json(res, 200, { status: llm.status(), preferredBackend: store.config.preferredBackend });

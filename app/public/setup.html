@@ -60,6 +60,8 @@
         <button id="wCloneBtn" class="btn primary" disabled>Stimme klonen</button>
       </div>
       <p id="wCloneStatus" class="muted small"></p>
+      <div id="hfBox" class="notice hidden"><strong>Ohne NVIDIA-GPU läuft Pocket TTS.</strong> Dessen Klon-Gewichte sind bei Hugging Face freigabepflichtig: kostenloses Konto, auf <a href="https://huggingface.co/kyutai/pocket-tts" target="_blank" rel="noopener">huggingface.co/kyutai/pocket-tts</a> die Bedingungen akzeptieren, unter <em>Settings → Access Tokens</em> einen Token (Lesen) erzeugen und hier eintragen. Ohne Token gibt es die 26 Katalogstimmen unten — Klonen wird dann still durch eine Katalogstimme ersetzt.
+        <div class="key-row" style="margin-top:8px"><input type="password" id="hfTokenInput" placeholder="Hugging-Face-Token (hf_…)" autocomplete="off"><button class="btn small" id="hfTokenSave">Token speichern</button></div></div>
       <h3>Oder eine vorhandene Stimme wählen</h3>
       <div class="row wrap-row"><select id="wVoiceSelect"></select><button class="btn" id="wPreviewBtn">▶ Probe</button><span class="muted small" id="wVoiceHint"></span></div>
       <div class="wizard-nav"><button class="btn ghost" data-goto="show">← Zurück</button><button class="btn primary" id="voiceNext">Diese Stimme nehmen &amp; weiter →</button></div>

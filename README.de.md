@@ -47,8 +47,10 @@ API-Keys liegen **mit Windows DPAPI verschlüsselt** im Benutzerprofil, werden n
 |---|---|---|
 | Stimme aus einer Aufnahme klonen | OmniVoice (6-s-Referenzclip) | Pocket TTS (12-s-Vorlage) |
 | Stimme aus Attributen entwerfen (Alter, Tonhöhe, Akzent) | ✓ | – |
-| Katalogstimmen ohne Klonen | – | ✓ (Pocket TTS: alba, juergen, …) |
+| Katalogstimmen ohne Klonen | – | ✓ (26 Pocket-TTS-Stimmen) |
 | Aussprache-Riegel (Whisper) | large-v3-turbo | small (int8) |
+
+Hinweis CPU: Die Klon-Gewichte von Pocket TTS sind bei Hugging Face freigabepflichtig. Kostenloses Konto anlegen, auf huggingface.co/kyutai/pocket-tts die Bedingungen akzeptieren und einen Lese-Token in der App eintragen (wird verschlüsselt abgelegt). Ohne Token nutzt die App nur Katalogstimmen.
 
 ## Bedienung in Kürze
 

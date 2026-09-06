@@ -18,6 +18,7 @@ const { spawn, spawnSync } = require('child_process');
 const paths = require('./paths');
 const { downloadFile, extractZip, findFile } = require('./download');
 const DL = require('./downloads.json');
+const secrets = require('./secrets');
 
 const STEPS = ['system', 'ffmpeg', 'python', 'torch', 'packages', 'models'];
 let state = load();
@@ -187,7 +188,9 @@ async function stepPackages(log, progress) {
 async function stepModels(log, progress) {
   const profile = state.profile || 'cpu';
   const env = { ...process.env, PYTHONUTF8: '1', PYTHONIOENCODING: 'utf-8', PYTHONUNBUFFERED: '1', HF_HOME: paths.modelsDir, HUGGINGFACE_HUB_CACHE: path.join(paths.modelsDir, 'hub'), HF_HUB_DISABLE_SYMLINKS_WARNING: '1', HF_HUB_DISABLE_TELEMETRY: '1', HF_HUB_ENABLE_HF_TRANSFER: '0' };
-  log(`Modelle für das ${profile.toUpperCase()}-Profil (Ablage: ${paths.modelsDir}) …`);
+  const hf = secrets.get('hf');
+  if (hf) env.HF_TOKEN = hf; else delete env.HF_TOKEN;
+  log(`Modelle für das ${profile.toUpperCase()}-Profil (Ablage: ${paths.modelsDir})${hf ? ' — mit Hugging-Face-Token (Pocket-Klon-Gewichte)' : ''} …`);
   const r = await runLogged(paths.venvPython(), [path.join(paths.engineDir, 'fetch_models.py'), '--profile', profile], {
     env, cwd: paths.engineDir, log: (l) => { if (!l.startsWith('{')) log(l); },
     onLine: (l) => { if (l.startsWith('{')) { try { const j = JSON.parse(l); if (j.progress) progress({ done: j.done, total: j.total, label: j.label }); if (j.log) log(j.log); } catch { /* egal */ } } },

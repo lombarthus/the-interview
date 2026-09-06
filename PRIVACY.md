@@ -12,6 +12,7 @@ The Interview runs locally. It sends **no telemetry**, has **no account**, and p
 | Update check (**opt-in**, default off) | `api.github.com` | nothing but the request |
 | Setup wizard (once) | `gyan.dev` (ffmpeg), python-build-standalone via `uv`, `pypi.org`, `download.pytorch.org`, `huggingface.co` | download requests |
 | Pocket TTS catalog voices (first use) | `huggingface.co` | download request |
+| Pocket TTS cloning weights (optional) | `huggingface.co` | your Hugging Face token, if you entered one |
 
 Nothing else. In particular: no audio, no recordings, no voice clones and no interviews ever leave your PC unless you upload them yourself.
 

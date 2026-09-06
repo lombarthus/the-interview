@@ -8,6 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
 const paths = require('./paths');
+const secrets = require('./secrets');
 
 const PORT = Number(process.env.INTERVIEW_ENGINE_PORT || 3114);
 const URL_BASE = (process.env.INTERVIEW_ENGINE_URL || `http://127.0.0.1:${PORT}`).replace(/\/+$/, '');
@@ -32,6 +33,9 @@ function start(extraEnv = {}) {
     HF_HOME: paths.modelsDir, HUGGINGFACE_HUB_CACHE: path.join(paths.modelsDir, 'hub'), HF_HUB_DISABLE_SYMLINKS_WARNING: '1', HF_HUB_DISABLE_TELEMETRY: '1',
     INTERVIEW_VOICES_DIR: paths.voicesDir, INTERVIEW_FFMPEG: paths.ffmpegPath(), INTERVIEW_WORK: path.join(paths.workDir, 'engine'),
   };
+  // Hugging-Face-Token (optional): schaltet bei Pocket TTS die gated Klon-Gewichte frei. Nur als Env an den Kindprozess, nie geloggt.
+  const hf = secrets.get('hf');
+  if (hf) env.HF_TOKEN = hf; else delete env.HF_TOKEN;
   child = spawn(py, [path.join(paths.engineDir, 'server.py'), '--port', String(PORT)], { env, windowsHide: true, cwd: paths.engineDir });
   startedAt = Date.now(); lastExit = null;
   child.stdout.on('data', (d) => { const s = String(d); logFile.write(s); s.split('\n').forEach(pushLog); });

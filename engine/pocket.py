@@ -7,6 +7,7 @@ Pausen zwischen Sätzen sonst zufällig), vor jeden Satz kommt ein Wegwerf-Komma
 unzuverlässigen ersten Frames auf), Anfangs- und Endstille werden gekappt."""
 from __future__ import annotations
 
+import os
 import re
 import threading
 import time
@@ -42,7 +43,7 @@ def available() -> bool:
 
 
 def status() -> dict:
-    return {"available": available(), "loaded": sorted(_models.keys()), "warm": [f"{k[0]}:{Path(k[1]).name}" for k in _states], "error": _import_error or _stats["last_error"]}
+    return {"available": available(), "loaded": sorted(_models.keys()), "cloning": cloning_available(), "hfToken": bool(os.environ.get("HF_TOKEN")), "warm": [f"{k[0]}:{Path(k[1]).name}" for k in _states], "error": _import_error or _stats["last_error"]}
 
 
 def default_voice(lang: str) -> str:
@@ -51,11 +52,27 @@ def default_voice(lang: str) -> str:
 
 
 def catalog() -> list[str]:
+    """Alle Katalogstimmen der Bibliothek (kyutai/tts-voices, CC-BY-4.0), Sprach-Defaults zuerst."""
     try:
         from pocket_tts.default_parameters import DEFAULT_VOICE_FALLBACK, DEFAULT_VOICE_FOR_LANGUAGE
-        return sorted({DEFAULT_VOICE_FALLBACK, *DEFAULT_VOICE_FOR_LANGUAGE.values()})
+        first = [DEFAULT_VOICE_FALLBACK, *DEFAULT_VOICE_FOR_LANGUAGE.values()]
+        try:
+            from pocket_tts.models.tts_model import _ORIGINS_OF_PREDEFINED_VOICES
+            rest = sorted(k for k in _ORIGINS_OF_PREDEFINED_VOICES if k not in first)
+        except Exception:
+            rest = []
+        return first + rest
     except Exception:
         return []
+
+
+def cloning_available() -> bool | None:
+    """True/False, sobald ein Modell geladen ist; None = noch unbekannt. Die Klon-Gewichte sind bei
+    Hugging Face gated: ohne akzeptierte Bedingungen + Token (HF_TOKEN) gibt es nur Katalogstimmen."""
+    with _registry:
+        for m in _models.values():
+            return bool(getattr(m, "has_voice_cloning", True))
+    return None
 
 
 def get_model(lang: str):
@@ -171,7 +188,7 @@ def generate(text: str, lang: str, voice_name: str | None, seed: int) -> tuple[n
             state = get_state(model, lang, voice_ref)
         except Exception as e:  # noqa: BLE001
             if is_clone:
-                log(f"Pocket: Klon {voice_name} nicht ladbar ({e}) — Katalogstimme")
+                log(f"Pocket: Klon {voice_name} nicht ladbar ({str(e)[:120]}) — Katalogstimme")
                 voice_ref, substituted = default_voice(lang), default_voice(lang)
                 state = get_state(model, lang, voice_ref)
             else:

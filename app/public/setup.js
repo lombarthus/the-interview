@@ -75,6 +75,9 @@ async function loadVoices() {
     const cur = state.config && state.config.hostVoice;
     $('wVoiceSelect').innerHTML = state.voices.length ? state.voices.map((x) => `<option value="${esc(x.name)}" ${x.name === cur ? 'selected' : ''}>${esc(x.name)} (${esc(x.kind === 'catalog' ? 'Katalog' : x.lang)})</option>`).join('') : '<option value="">— noch keine Stimme —</option>';
     $('wVoiceHint').textContent = state.engine.reachable ? (state.engine.omnivoice && state.engine.omnivoice.available ? 'OmniVoice (GPU) aktiv' : 'Pocket TTS (CPU) aktiv — Katalogstimmen und Klone') : 'Engine startet … (erster Start dauert ein paar Sekunden)';
+    const cpuOnly = state.engine.reachable && !(state.engine.omnivoice && state.engine.omnivoice.available);
+    $('hfBox').classList.toggle('hidden', !cpuOnly);
+    if (cpuOnly) { try { const sec = (await api('api/secrets')).keys.hf; $('hfTokenInput').placeholder = sec && sec.present ? `Token hinterlegt (${sec.masked})` : 'Hugging-Face-Token (hf_…)'; } catch { /* egal */ } }
     if (!state.engine.reachable) setTimeout(loadVoices, 4000);
   } catch (e) { $('wVoiceHint').textContent = `Engine: ${e.message}`; }
 }
@@ -122,6 +125,12 @@ $('wCloneBtn').onclick = async () => {
     toast('Stimme geklont', 'ok');
   } catch (e) { $('wCloneStatus').textContent = `Fehler: ${e.message}`; toast(e.message, 'err', 8000); }
   updateCloneBtn();
+};
+$('hfTokenSave').onclick = async () => {
+  const v = $('hfTokenInput').value.trim();
+  if (!v) { toast('Kein Token eingegeben', 'err'); return; }
+  try { await api('api/secrets', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name: 'hf', value: v }) }); $('hfTokenInput').value = ''; toast('Token verschlüsselt gespeichert — Engine startet neu', 'ok', 6000); setTimeout(loadVoices, 6000); }
+  catch (e) { toast(`Token: ${e.message}`, 'err'); }
 };
 $('wPreviewBtn').onclick = async () => {
   const voice = $('wVoiceSelect').value;

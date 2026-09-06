@@ -47,8 +47,10 @@ API keys are stored **encrypted with Windows DPAPI** in your user profile, never
 |---|---|---|
 | Voice cloning from a recording | OmniVoice (6-s reference clip) | Pocket TTS (12-s template) |
 | Voice design from attributes (age, pitch, accent) | ✓ | – |
-| Catalog voices without cloning | – | ✓ (Pocket TTS: alba, juergen, …) |
+| Catalog voices without cloning | – | ✓ (26 Pocket TTS voices) |
 | Pronunciation check (Whisper) | large-v3-turbo | small (int8) |
+
+CPU note: Pocket TTS voice-cloning weights are gated on Hugging Face. Create a free account, accept the terms at huggingface.co/kyutai/pocket-tts and paste a read token in the app (stored encrypted). Without it the app uses catalog voices only.
 
 ## Privacy & security
 
