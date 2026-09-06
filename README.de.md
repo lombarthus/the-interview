@@ -76,7 +76,7 @@ Sicherheitslücke melden: [SECURITY.md](SECURITY.md).
 Voraussetzungen: Node 24, `uv` im PATH (für die Setup-Schritte), Windows 10/11.
 
 ```bash
-git clone https://github.com/YOUR-GITHUB-USER/the-interview
+git clone https://github.com/lombarthus/the-interview
 cd the-interview
 node tools/install-hooks.js      # Pre-Commit-Leak-Check
 node tools/smoke.js              # Logik-Tests ohne Netz

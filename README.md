@@ -66,7 +66,7 @@ Report a vulnerability: see [SECURITY.md](SECURITY.md).
 Requirements: Node 24, `uv` on PATH (for the setup steps), Windows 10/11.
 
 ```bash
-git clone https://github.com/YOUR-GITHUB-USER/the-interview
+git clone https://github.com/lombarthus/the-interview
 cd the-interview
 node tools/install-hooks.js      # pre-commit leak check
 node tools/smoke.js              # logic tests, no network
