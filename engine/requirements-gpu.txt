@@ -3,3 +3,4 @@
 omnivoice>=0.1.0
 transformers>=4.45
 accelerate>=0.30
+faster-whisper>=1.1   # Rückfall für Klon-Schnitt/Aussprache-Riegel, falls CUDA nicht verfügbar ist

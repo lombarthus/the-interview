@@ -158,11 +158,19 @@ async function stepTorch(log, progress) {
   const index = profile === 'gpu' ? DL.torch.gpuIndex : DL.torch.cpuIndex;
   log(`Installiere torch/torchaudio (${profile === 'gpu' ? 'CUDA 12.8, ≈ 2,8 GB' : 'CPU, ≈ 250 MB'}) von ${index} …`);
   progress({ label: profile === 'gpu' ? 'torch (CUDA) wird geladen — das dauert einige Minuten' : 'torch (CPU) wird geladen' });
-  const r = await runLogged(paths.uvPath(), ['pip', 'install', '--python', paths.venvPython(), '--index-url', index, '--extra-index-url', 'https://pypi.org/simple', 'torch', 'torchaudio', 'numpy'], { env: uvEnv(), log });
+  // Nur DIESER Index: bei uv hätten --extra-index-url-Quellen Vorrang, und PyPI liefert den CPU-Build.
+  // Liegt schon ein falscher Build (CPU statt CUDA), wird er ausdrücklich ersetzt — gleiche Versionsnummer
+  // reicht uv sonst als "erfüllt".
+  const args = ['pip', 'install', '--python', paths.venvPython(), '--index-url', index];
+  if (cur && !cur.cuda && profile === 'gpu') args.push('--reinstall-package', 'torch', '--reinstall-package', 'torchaudio');
+  args.push('torch', 'torchaudio');
+  const r = await runLogged(paths.uvPath(), args, { env: uvEnv(), log });
   if (r.code !== 0) throw new Error(`torch-Installation fehlgeschlagen (exit ${r.code})`);
+  const rn = await runLogged(paths.uvPath(), ['pip', 'install', '--python', paths.venvPython(), 'numpy'], { env: uvEnv(), log });
+  if (rn.code !== 0) throw new Error(`numpy-Installation fehlgeschlagen (exit ${rn.code})`);
   const info = torchInfo();
   if (!info) throw new Error('torch importiert nicht');
-  if (profile === 'gpu' && !info.cuda) log('WARNUNG: torch sieht keine CUDA-GPU — Treiber ≥ 570 nötig; die Engine läuft dann auf CPU (Pocket)');
+  if (profile === 'gpu' && !info.cuda) throw new Error(`torch ${info.version} sieht keine CUDA-GPU. NVIDIA-Treiber ≥ 570 installieren und den Schritt wiederholen — oder oben „CPU-Pfad erzwingen“ wählen (Pocket TTS statt OmniVoice).`);
   const detail = `torch ${info.version}, CUDA ${info.cuda ? 'ja' : 'nein'}`;
   log(detail); mark('torch', 'done', detail);
   return detail;
@@ -175,8 +183,13 @@ async function stepPackages(log, progress) {
   if (!fs.existsSync(req)) throw new Error(`${req} fehlt`);
   progress({ label: 'Engine-Pakete werden installiert' });
   log(`uv pip install -r ${path.basename(req)} …`);
-  const r = await runLogged(paths.uvPath(), ['pip', 'install', '--python', paths.venvPython(), '-r', req], { env: uvEnv(), log });
+  const pargs = ['pip', 'install', '--python', paths.venvPython()];
+  if (profile === 'gpu') pargs.push('--index', DL.torch.gpuIndex);   // torch bleibt der CUDA-Build (Index mit Vorrang)
+  pargs.push('-r', req);
+  const r = await runLogged(paths.uvPath(), pargs, { env: uvEnv(), log });
   if (r.code !== 0) throw new Error(`Paket-Installation fehlgeschlagen (exit ${r.code})`);
+  const after = torchInfo();
+  if (profile === 'gpu' && after && !after.cuda) throw new Error('Ein Paket hat torch gegen den CPU-Build getauscht — Schritt „torch“ wiederholen, dann diesen Schritt');
   const check = tryRun(paths.venvPython(), ['-c', 'import fastapi, uvicorn, soundfile, PIL; print("ok")'], 120000);
   if (!check.ok) throw new Error(`Engine-Import schlägt fehl: ${check.out.slice(-200)}`);
   const detail = `Pakete für ${profile.toUpperCase()} installiert`;
