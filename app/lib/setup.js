@@ -39,8 +39,18 @@ function uvEnv() {
     UV_HTTP_TIMEOUT: '900',
     UV_NO_PROGRESS: '1',
     UV_PYTHON_PREFERENCE: 'only-managed',   // nie ein System-Python anfassen
+    UV_PYTHON_INSTALL_BIN: '0',             // keine Starter in ~/.local/bin
+    UV_PYTHON_INSTALL_REGISTRY: '0',        // kein Eintrag in der Windows-Registry (PEP 514)
   };
 }
+
+// Letzte aussagekräftige Zeile einer Werkzeug-Ausgabe für Fehlermeldungen.
+function lastLine(out) {
+  const lines = String(out || '').split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const err = [...lines].reverse().find((l) => /error|fehler|caused by|failed/i.test(l));
+  return (err || lines[lines.length - 1] || '').slice(0, 200);
+}
+function fail(what, r) { return new Error(`${what} fehlgeschlagen (exit ${r.code})${lastLine(r.out) ? `: ${lastLine(r.out)}` : ''}`); }
 
 function runLogged(cmd, args, { env, cwd, log, timeoutMs = 3 * 60 * 60 * 1000, onLine } = {}) {
   return new Promise((resolve) => {
@@ -130,11 +140,12 @@ async function stepPython(log) {
   if (py && tryRun(py, ['--version']).ok) { const d = `venv vorhanden: ${tryRun(py, ['--version']).out}`; log(d); mark('python', 'done', d); return d; }
   const uv = paths.uvPath();
   log(`uv python install ${DL.python.version} (in ${path.join(paths.pythonDir, 'installs')}) …`);
-  let r = await runLogged(uv, ['python', 'install', DL.python.version], { env: uvEnv(), log });
-  if (r.code !== 0) throw new Error(`uv python install fehlgeschlagen (exit ${r.code})`);
+  // --no-bin/--no-registry: nichts außerhalb des Datenordners anlegen (kein ~/.local/bin, keine Registry).
+  let r = await runLogged(uv, ['python', 'install', DL.python.version, '--no-bin', '--no-registry'], { env: uvEnv(), log });
+  if (r.code !== 0) throw fail('uv python install', r);
   log('uv venv …');
   r = await runLogged(uv, ['venv', paths.venvDir, '--python', DL.python.version, '--seed'], { env: uvEnv(), log });
-  if (r.code !== 0) throw new Error(`uv venv fehlgeschlagen (exit ${r.code})`);
+  if (r.code !== 0) throw fail('uv venv', r);
   const v = tryRun(paths.venvPython(), ['--version']);
   if (!v.ok) throw new Error('venv-Python startet nicht');
   const detail = v.out.trim();
@@ -165,9 +176,9 @@ async function stepTorch(log, progress) {
   if (cur && !cur.cuda && profile === 'gpu') args.push('--reinstall-package', 'torch', '--reinstall-package', 'torchaudio');
   args.push('torch', 'torchaudio');
   const r = await runLogged(paths.uvPath(), args, { env: uvEnv(), log });
-  if (r.code !== 0) throw new Error(`torch-Installation fehlgeschlagen (exit ${r.code})`);
+  if (r.code !== 0) throw fail('torch-Installation', r);
   const rn = await runLogged(paths.uvPath(), ['pip', 'install', '--python', paths.venvPython(), 'numpy'], { env: uvEnv(), log });
-  if (rn.code !== 0) throw new Error(`numpy-Installation fehlgeschlagen (exit ${rn.code})`);
+  if (rn.code !== 0) throw fail('numpy-Installation', rn);
   const info = torchInfo();
   if (!info) throw new Error('torch importiert nicht');
   if (profile === 'gpu' && !info.cuda) throw new Error(`torch ${info.version} sieht keine CUDA-GPU. NVIDIA-Treiber ≥ 580 installieren (CUDA 13) und den Schritt wiederholen — oder oben „CPU-Pfad erzwingen“ wählen (Pocket TTS statt OmniVoice).`);
@@ -187,7 +198,7 @@ async function stepPackages(log, progress) {
   if (profile === 'gpu') pargs.push('--index', DL.torch.gpuIndex);   // torch bleibt der CUDA-Build (Index mit Vorrang)
   pargs.push('-r', req);
   const r = await runLogged(paths.uvPath(), pargs, { env: uvEnv(), log });
-  if (r.code !== 0) throw new Error(`Paket-Installation fehlgeschlagen (exit ${r.code})`);
+  if (r.code !== 0) throw fail('Paket-Installation', r);
   const after = torchInfo();
   if (profile === 'gpu' && after && !after.cuda) throw new Error('Ein Paket hat torch gegen den CPU-Build getauscht — Schritt „torch“ wiederholen, dann diesen Schritt');
   const check = tryRun(paths.venvPython(), ['-c', 'import fastapi, uvicorn, soundfile, PIL; print("ok")'], 120000);
@@ -208,7 +219,7 @@ async function stepModels(log, progress) {
     env, cwd: paths.engineDir, log: (l) => { if (!l.startsWith('{')) log(l); },
     onLine: (l) => { if (l.startsWith('{')) { try { const j = JSON.parse(l); if (j.progress) progress({ done: j.done, total: j.total, label: j.label }); if (j.log) log(j.log); } catch { /* egal */ } } },
   });
-  if (r.code !== 0) throw new Error(`Modell-Download fehlgeschlagen (exit ${r.code})`);
+  if (r.code !== 0) throw fail('Modell-Download', r);
   const detail = `Modelle für ${profile.toUpperCase()} vorhanden`;
   log(detail); mark('models', 'done', detail);
   return detail;
@@ -220,9 +231,14 @@ async function runStep(step) {
   if (!RUNNERS[step]) throw Object.assign(new Error(`Unbekannter Schritt: ${step}`), { status: 400 });
   if (running) throw Object.assign(new Error(`Schritt „${running.step}“ läuft gerade`), { status: 409 });
   running = { step, log: [], progress: null, startedAt: Date.now() };
-  const log = (l) => { running.log.push(`${new Date().toLocaleTimeString('de-DE')} ${l}`); if (running.log.length > 400) running.log.shift(); };
+  const log = (l) => {
+    const line = `${new Date().toLocaleTimeString('de-DE')} ${l}`;
+    running.log.push(line); if (running.log.length > 400) running.log.shift();
+    try { fs.appendFileSync(path.join(paths.logsDir, 'setup.log'), `${line}\n`); } catch { /* Log ist Komfort, kein Muss */ }
+  };
   const progress = (p) => { running.progress = p; };
   mark(step, 'running', '');
+  log(`=== Schritt ${step} ===`);
   try {
     const detail = await RUNNERS[step](log, progress);
     return { ok: true, detail };

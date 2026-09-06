@@ -1,6 +1,12 @@
 # Changelog
 
-## 1.0.0 — unreleased
+## 1.0.1 — 2026-09-06
+
+- Setup step "Python" failed on PCs where `~/.local/bin` already held a Python launcher: uv now installs with `--no-bin --no-registry`, so nothing is written outside the data folder (no launcher, no Windows registry entry)
+- Setup errors show the last line of the failing tool's output
+- Setup log is written to `%LOCALAPPDATA%\TheInterview\logs\setup.log`
+
+## 1.0.0 — 2026-09-06
 
 First standalone release.
 
