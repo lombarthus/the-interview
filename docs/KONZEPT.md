@@ -147,7 +147,7 @@ Größe ≈ 45 MB. Zusätzlich aus demselben CI-Lauf: `TheInterview-portable.zip
 | 1 Systemcheck | Windows-Version, freier Speicher, `nvidia-smi` (GPU-Name, VRAM), PowerShell | – | 2 s |
 | 2 ffmpeg | BtbN-Release-Zip, SHA-256 gegen eingebettete Prüfsumme | 90 MB | 20 s |
 | 3 Python | `uv python install 3.11` + `uv venv` | 30 MB | 20 s |
-| 4 torch | GPU: `torch` cu128 (RTX 20xx–50xx, Treiber ≥ 570) · CPU: torch-cpu | 2,8 GB / 0,2 GB | 5 min / 30 s |
+| 4 torch | GPU: `torch` cu130 (RTX 20xx–50xx, Treiber ≥ 580) · CPU: torch-cpu | 2,8 GB / 0,2 GB | 5 min / 30 s |
 | 5 Engine-Pakete | `uv pip install -r requirements-{gpu,cpu}.txt` (omnivoice, pocket-tts, transformers/faster-whisper, fastapi, soundfile, pillow) | 400 MB | 1 min |
 | 6 Modelle | GPU: OmniVoice + whisper-large-v3-turbo · CPU: pocket-tts + whisper-small; Download mit Fortschritt, wiederaufnehmbar | 6,6 GB / 0,9 GB | 10 min / 2 min |
 | 7 Show & Host | Show-Name, Host-Name, Sprache der Oberfläche (v1: de) | – | – |

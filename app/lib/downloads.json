@@ -22,7 +22,7 @@
   },
   "python": { "version": "3.11", "via": "uv python install" },
   "torch": {
-    "gpuIndex": "https://download.pytorch.org/whl/cu128",
+    "gpuIndex": "https://download.pytorch.org/whl/cu130",
     "cpuIndex": "https://download.pytorch.org/whl/cpu"
   },
   "models": {

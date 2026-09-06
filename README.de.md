@@ -18,7 +18,7 @@ Alles läuft auf dem eigenen Windows-PC. Der Gast wird aus Wikipedia (oder einem
 |---|---|---|---|---|
 | ffmpeg | Audio/Video-Werkzeug | 110 MB | ✓ | ✓ |
 | Python 3.11 | eigene Umgebung über `uv` | 30 MB | ✓ | ✓ |
-| torch | CUDA-12.8-Build oder CPU-Build | 2,8 GB / 250 MB | ✓ | ✓ |
+| torch | CUDA-13.0-Build (NVIDIA-Treiber ab 580) oder CPU-Build | 3 GB / 250 MB | ✓ | ✓ |
 | Engine | OmniVoice · Pocket TTS · Whisper | 400 MB | ✓ | ✓ |
 | Modelle | OmniVoice + Whisper large / Whisper small + Pocket | 6,6 GB / 0,9 GB | ✓ | ✓ |
 

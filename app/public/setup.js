@@ -7,7 +7,7 @@ const post = (p, body) => api(p, { method: 'POST', headers: { 'content-type': 'a
 let toastTimer = null;
 function toast(msg, kind = '', ms = 4000) { const t = $('toast'); t.textContent = msg; t.className = `toast ${kind}`; clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.add('hidden'), ms); }
 
-const STEP_NAMES = { system: 'Systemcheck (GPU, Platz, Werkzeuge)', ffmpeg: 'ffmpeg (Audio/Video-Werkzeug, ≈ 110 MB)', python: 'Python 3.11 in eigener Umgebung (uv)', torch: 'torch (GPU: ≈ 2,8 GB · CPU: ≈ 250 MB)', packages: 'Sprach-Engine (OmniVoice / Pocket TTS / Whisper)', models: 'Modelle laden (GPU: ≈ 6,6 GB · CPU: ≈ 0,9 GB)' };
+const STEP_NAMES = { system: 'Systemcheck (GPU, Platz, Werkzeuge)', ffmpeg: 'ffmpeg (Audio/Video-Werkzeug, ≈ 110 MB)', python: 'Python 3.11 in eigener Umgebung (uv)', torch: 'torch (GPU: CUDA 13, ≈ 3 GB · CPU: ≈ 250 MB)', packages: 'Sprach-Engine (OmniVoice / Pocket TTS / Whisper)', models: 'Modelle laden (GPU: ≈ 6,6 GB · CPU: ≈ 0,9 GB)' };
 const PROVIDERS = [
   { id: 'claude-cli', name: 'Claude Code CLI', desc: 'Abo-Login der Claude-Code-CLI auf diesem PC. Nur Erkennung.', key: null },
   { id: 'codex-cli', name: 'OpenAI Codex CLI', desc: 'ChatGPT-Abo-Login der Codex-CLI (codex login).', key: null },

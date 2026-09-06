@@ -7,7 +7,7 @@
 //  system   Windows, Platz, GPU (nvidia-smi), Werkzeuge -> Profil gpu | cpu
 //  ffmpeg   Zip laden (SHA-256), entpacken, nach tools/ffmpeg/
 //  python   uv python install 3.11 + uv venv
-//  torch    torch/torchaudio (cu128 für GPU, sonst CPU-Wheel)
+//  torch    torch/torchaudio (cu130 für GPU — der cu128-Index endet bei 2.11, transformers 5 braucht neuer; sonst CPU-Wheel)
 //  packages engine/requirements-<profil>.txt
 //  models   engine/fetch_models.py (HF-Cache im Datenordner)
 
@@ -156,7 +156,7 @@ async function stepTorch(log, progress) {
   const cur = torchInfo();
   if (cur && (profile === 'cpu' || cur.cuda)) { const d = `torch ${cur.version} vorhanden (CUDA ${cur.cuda ? 'ja' : 'nein'})`; log(d); mark('torch', 'done', d); return d; }
   const index = profile === 'gpu' ? DL.torch.gpuIndex : DL.torch.cpuIndex;
-  log(`Installiere torch/torchaudio (${profile === 'gpu' ? 'CUDA 12.8, ≈ 2,8 GB' : 'CPU, ≈ 250 MB'}) von ${index} …`);
+  log(`Installiere torch/torchaudio (${profile === 'gpu' ? 'CUDA 13.0, ≈ 3 GB' : 'CPU, ≈ 250 MB'}) von ${index} …`);
   progress({ label: profile === 'gpu' ? 'torch (CUDA) wird geladen — das dauert einige Minuten' : 'torch (CPU) wird geladen' });
   // Nur DIESER Index: bei uv hätten --extra-index-url-Quellen Vorrang, und PyPI liefert den CPU-Build.
   // Liegt schon ein falscher Build (CPU statt CUDA), wird er ausdrücklich ersetzt — gleiche Versionsnummer
@@ -170,7 +170,7 @@ async function stepTorch(log, progress) {
   if (rn.code !== 0) throw new Error(`numpy-Installation fehlgeschlagen (exit ${rn.code})`);
   const info = torchInfo();
   if (!info) throw new Error('torch importiert nicht');
-  if (profile === 'gpu' && !info.cuda) throw new Error(`torch ${info.version} sieht keine CUDA-GPU. NVIDIA-Treiber ≥ 570 installieren und den Schritt wiederholen — oder oben „CPU-Pfad erzwingen“ wählen (Pocket TTS statt OmniVoice).`);
+  if (profile === 'gpu' && !info.cuda) throw new Error(`torch ${info.version} sieht keine CUDA-GPU. NVIDIA-Treiber ≥ 580 installieren (CUDA 13) und den Schritt wiederholen — oder oben „CPU-Pfad erzwingen“ wählen (Pocket TTS statt OmniVoice).`);
   const detail = `torch ${info.version}, CUDA ${info.cuda ? 'ja' : 'nein'}`;
   log(detail); mark('torch', 'done', detail);
   return detail;

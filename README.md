@@ -18,7 +18,7 @@ The app runs entirely on your own Windows PC. Guests are researched from Wikiped
 |---|---|---|---|---|
 | ffmpeg | audio/video tool | 110 MB | ✓ | ✓ |
 | Python 3.11 | private environment via `uv` | 30 MB | ✓ | ✓ |
-| torch | CUDA 12.8 build or CPU build | 2.8 GB / 250 MB | ✓ | ✓ |
+| torch | CUDA 13.0 build (NVIDIA driver 580 or newer) or CPU build | 3 GB / 250 MB | ✓ | ✓ |
 | Engine | OmniVoice · Pocket TTS · Whisper | 400 MB | ✓ | ✓ |
 | Models | OmniVoice + Whisper large / Whisper small + Pocket | 6.6 GB / 0.9 GB | ✓ | ✓ |
 
